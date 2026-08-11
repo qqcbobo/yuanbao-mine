@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>元宝地雷 · 微信联机版</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #1b3a6b 0%, #24508f 45%, #1e4680 100%);
+    min-height: 100vh; color: #fff; overflow-x: hidden;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 40px; }
+  .header { text-align: center; padding: 14px 0 6px; }
+  .header h1 { font-size: 30px; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,.4); }
+  .header h1 .yb { color: #ffd75e; } .header h1 .ld { color: #ff8d8d; }
+  .header p { font-size: 13px; opacity: .85; margin-top: 4px; }
+  .card {
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 16px; padding: 16px; margin-top: 14px;
+  }
+  .card h2 { font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .card h2::before { content: ""; width: 4px; height: 16px; background: #ffd75e; border-radius: 2px; display: inline-block; }
+  .row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .row input, .row select {
+    flex: 1; padding: 12px 10px; border-radius: 10px; border: none;
+    font-size: 16px; background: rgba(255,255,255,.16); color: #fff; outline: none;
+  }
+  .row input::placeholder { color: rgba(255,255,255,.6); }
+  .row select option { color: #333; }
+  .btn {
+    border: none; border-radius: 12px; padding: 13px 16px; font-size: 16px;
+    cursor: pointer; transition: transform .08s, opacity .15s; font-weight: 600;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn-gold { background: linear-gradient(180deg,#ffd75e,#f0a500); color: #5a3a00; }
+  .btn-blue { background: linear-gradient(180deg,#6ab0ff,#2f6fd0); color: #fff; }
+  .btn-red { background: linear-gradient(180deg,#ff6b6b,#d93b3b); color: #fff; }
+  .btn-gray { background: rgba(255,255,255,.2); color: #fff; }
+  .btn-green { background: linear-gradient(180deg,#5ee0a0,#2fae6d); color: #06381f; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-sm { padding: 8px 12px; font-size: 14px; border-radius: 10px; }
+  .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+  .chip {
+    background: rgba(255,255,255,.15); padding: 8px 14px; border-radius: 20px;
+    font-size: 15px; display: flex; align-items: center; gap: 8px;
+  }
+  .chip.me { background: #ffd75e; color: #5a3a00; font-weight: 700; }
+  .chip.host::after { content: "👑"; font-size: 12px; }
+  .chip .turn-mark { color: #2fae6d; font-weight: 800; }
+  .hint { font-size: 13px; opacity: .8; margin-top: 6px; line-height: 1.5; }
+  .roomcode {
+    text-align: center; font-size: 44px; font-weight: 800; letter-spacing: 10px;
+    color: #ffd75e; text-shadow: 0 3px 10px rgba(0,0,0,.5); margin: 6px 0;
+  }
+  .roomlink {
+    background: rgba(255,255,255,.1); border-radius: 10px; padding: 10px 12px;
+    font-size: 13px; word-break: break-all; margin: 8px 0; color: #cfe3ff;
+  }
+  .range-box { text-align: center; padding: 10px 0 4px; }
+  .range-num {
+    font-size: 44px; font-weight: 800; letter-spacing: 2px; color: #ffd75e;
+    text-shadow: 0 3px 10px rgba(0,0,0,.5);
+  }
+  .range-label { font-size: 14px; opacity: .85; margin-top: 2px; }
+  .turn-box {
+    text-align: center; margin: 10px 0; padding: 10px;
+    background: rgba(255,215,94,.18); border: 1px dashed #ffd75e; border-radius: 12px;
+  }
+  .turn-name { font-size: 20px; font-weight: 700; color: #ffd75e; }
+  .turn-label { font-size: 13px; opacity: .85; }
+  .history { max-height: 200px; overflow-y: auto; margin-top: 8px; }
+  .h-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px; border-radius: 10px; font-size: 14px; margin-bottom: 6px;
+    background: rgba(255,255,255,.08);
+  }
+  .h-item .g { color: #ffd75e; font-weight: 700; }
+  .h-item .r { color: #b8e6d0; font-size: 12px; }
+  .h-item.hit { background: rgba(255,215,94,.25); }
+  .mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.72);
+    display: none; align-items: center; justify-content: center; z-index: 99; padding: 20px;
+  }
+  .mask.show { display: flex; }
+  .modal {
+    width: 100%; max-width: 400px; background: linear-gradient(180deg,#fff7e0,#ffe9b8);
+    color: #5a3a00; border-radius: 20px; padding: 24px 20px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .modal .icon { font-size: 56px; }
+  .modal h3 { font-size: 24px; margin: 8px 0 4px; }
+  .modal .sub { font-size: 15px; margin-bottom: 10px; }
+  .chal {
+    background: #fff; border: 2px solid #f0a500; border-radius: 12px;
+    padding: 14px; margin: 12px 0; font-size: 17px; line-height: 1.6; font-weight: 600;
+  }
+  .chal .tag { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 12px; color: #fff; margin-bottom: 6px; }
+  .tag-truth { background: #4a9de0; } .tag-dare { background: #e04a4a; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .footer { text-align: center; font-size: 12px; opacity: .6; margin-top: 22px; }
+  .toast {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,.85); color: #fff; padding: 10px 18px; border-radius: 20px;
+    font-size: 14px; z-index: 200; display: none; max-width: 88%; text-align: center;
+  }
+  .toast.show { display: block; animation: fadein .2s; }
+  @keyframes fadein { from { opacity: 0; transform: translate(-50%,-8px); } to { opacity: 1; transform: translate(-50%,0); } }
+  .hidden { display: none !important; }
+  .connbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+    background: #e04a4a; color: #fff; text-align: center; font-size: 13px;
+    padding: 6px; display: none;
+  }
+  .connbar.show { display: block; }
+  .waiting { text-align: center; padding: 10px; font-size: 15px; opacity: .9; }
+</style>
+</head>
+<body>
+<div class="connbar" id="connBar">连接断开,正在重连…</div>
+<div class="wrap">
+  <div class="header">
+    <h1><span class="yb">元宝</span>·<span class="ld">地雷</span></h1>
+    <p>微信联机版 · 拉上朋友一起猜</p>
+  </div>
+
+  <!-- ============ 入口:昵称 + 创建/加入 ============ -->
+  <div id="enterView">
+    <div class="card">
+      <h2>进入游戏</h2>
+      <div class="row">
+        <input id="inpName" type="text" placeholder="输入你的昵称" maxlength="10">
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-gold" id="btnCreate" style="flex:1;">创建房间</button>
+      </div>
+      <div class="hint" style="text-align:center;">— 或 —</div>
+      <div class="row">
+        <input id="inpCode" type="text" inputmode="numeric" maxlength="4" placeholder="输入 4 位房间码">
+        <button class="btn btn-blue btn-sm" id="btnJoin" style="flex:0 0 auto;">加入房间</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 房间等待(未开局) ============ -->
+  <div id="roomView" class="hidden">
+    <div class="card">
+      <h2>房间 <span id="roomCodeLabel" style="color:#ffd75e;"></span></h2>
+      <div class="roomcode" id="roomCodeBig">----</div>
+      <div class="hint" style="text-align:center;">把房间码或下面的链接发给微信朋友,一起加入</div>
+      <div class="roomlink" id="roomLink">链接生成中…</div>
+      <button class="btn btn-gray btn-sm" id="btnCopyLink" style="width:100%;margin-top:6px;">复制房间链接</button>
+    </div>
+    <div class="card">
+      <h2>玩家列表(<span id="playerCount">0</span>人)</h2>
+      <div class="player-list" id="playerListRoom"></div>
+      <div class="row hidden" id="customRowRoom">
+        <input id="inpTreasureRoom" type="number" min="1" max="100" placeholder="元宝数字 1~100">
+        <select id="selMineSideRoom" style="flex:0 0 46%;">
+          <option value="auto">地雷方向:自动</option>
+          <option value="+1">地雷:元宝+1</option>
+          <option value="-1">地雷:元宝-1</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-gray btn-sm" id="btnRandomStart" style="flex:1;">🎲 随机元宝开局</button>
+        <button class="btn btn-gold btn-sm" id="btnCustomStart" style="flex:1;">⚙️ 自定义元宝</button>
+      </div>
+      <div class="hint" id="roomHint">房主可开始游戏,其他人等待。</div>
+    </div>
+  </div>
+
+  <!-- ============ 游戏进行 ============ -->
+  <div id="gameView" class="hidden">
+    <div class="card">
+      <div class="range-box">
+        <div class="range-num" id="rangeNum">1 ~ 100</div>
+        <div class="range-label">当前数字范围(元宝和地雷藏在这里面)</div>
+      </div>
+      <div class="turn-box">
+        <div class="turn-label">轮到</div>
+        <div class="turn-name" id="turnName">—</div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <input id="inpGuess" type="number" placeholder="输入要猜的数字" inputmode="numeric" disabled>
+        <button class="btn btn-gold btn-sm" id="btnGuess" style="flex:0 0 auto;font-size:16px;padding:13px 20px;" disabled>猜!</button>
+      </div>
+      <div class="hint" id="myTurnHint" style="text-align:center;">还没轮到你</div>
+    </div>
+
+    <div class="card">
+      <h2>玩家列表</h2>
+      <div class="player-list" id="playerListGame"></div>
+      <h2 style="margin-top:14px;">猜数记录</h2>
+      <div class="history" id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="footer">元宝地雷 · 微信联机版</div>
+</div>
+
+<!-- ============ 结算弹窗 ============ -->
+<div class="mask" id="resultMask">
+  <div class="modal">
+    <div class="icon" id="resIcon">💣</div>
+    <h3 id="resTitle">踩中地雷!</h3>
+    <div class="sub" id="resSub"></div>
+    <div class="chal">
+      <div><span class="tag tag-dare" id="resTag">大冒险</span></div>
+      <div id="resText">随机题目</div>
+    </div>
+    <div class="hint" style="color:#8a6d2a;" id="resExtra"></div>
+    <button class="btn btn-gold" id="btnNewRound" style="margin-top:14px;">完成!回到房间再来一局</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 联机客户端 ================= */
+'use strict';
+var $ = function (id) { return document.getElementById(id); };
+var ws = null;
+var myId = null;
+var myName = '';
+var state = null;
+var inGame = false;   // 当前是否在进行中的游戏(供输入框状态判断)
+
+function toast(msg) {
+  var t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2200);
+}
+
+/* ---------- WebSocket ---------- */
+function connect() {
+  var proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+  ws = new WebSocket(proto + location.host);
+  ws.onopen = function () {
+    $('connBar').classList.remove('show');
+    // 若 URL 带 #room=XXXX 则自动加入
+    var m = location.hash.match(/#room=(\d{4})/);
+    if (m && !state && myName) { $('inpCode').value = m[1]; tryJoin(); }
+  };
+  ws.onmessage = function (ev) {
+    var msg; try { msg = JSON.parse(ev.data); } catch (e) { return; }
+    handle(msg);
+  };
+  ws.onclose = function () {
+    $('connBar').classList.add('show');
+    setTimeout(connect, 2000);
+  };
+  ws.onerror = function () { ws.close(); };
+}
+
+function send(obj) {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj));
+}
+
+function handle(msg) {
+  switch (msg.type) {
+    case 'ok':
+      if (msg.code && msg.playerId) {
+        myId = msg.playerId;
+        state = msg.state;
+        showRoom();
+      }
+      break;
+    case 'state':
+      state = msg.state;
+      if (msg.notice) toast(msg.notice);
+      renderAll();
+      break;
+    case 'error':
+      toast(msg.message || '操作失败');
+      break;
+  }
+}
+
+/* ---------- 视图 ---------- */
+function showRoom() {
+  $('enterView').classList.add('hidden');
+  $('gameView').classList.add('hidden');
+  $('roomView').classList.remove('hidden');
+  renderAll();
+}
+
+function renderAll() {
+  if (!state) return;
+  if (state.started) {
+    $('roomView').classList.add('hidden');
+    $('gameView').classList.remove('hidden');
+  } else {
+    $('roomView').classList.remove('hidden');
+    $('gameView').classList.add('hidden');
+  }
+  if (state.started) renderGame(); else renderRoom();
+}
+
+function renderRoom() {
+  $('roomCodeBig').textContent = state.code;
+  $('roomCodeLabel').textContent = '#' + state.code;
+  var link = location.origin + location.pathname + '#room=' + state.code;
+  $('roomLink').textContent = link;
+  var isHost = myId === state.hostId;
+  $('btnRandomStart').disabled = !isHost;
+  $('btnCustomStart').disabled = !isHost;
+  $('btnCopyLink').style.display = '';
+  $('roomHint').textContent = isHost ? '你是房主:可随机开局,或自定义元宝数字后开局。' : '等待房主开始游戏…';
+  renderPlayers($('playerListRoom'));
+  $('playerCount').textContent = state.players.length;
+}
+
+function renderGame() {
+  var s = state;
+  $('rangeNum').textContent = s.low + ' ~ ' + s.high;
+  var cur = null;
+  if (s.players.length > 0 && s.players[s.current]) cur = s.players[s.current];
+  $('turnName').textContent = cur ? cur.name : '—';
+  var myTurn = s.status === 'playing' && cur && cur.id === myId;
+  $('inpGuess').disabled = !myTurn;
+  $('btnGuess').disabled = !myTurn;
+  $('myTurnHint').textContent = s.status !== 'playing' ? '本局已结束' : (myTurn ? '轮到你啦,输入数字猜吧!' : '等待「' + (cur ? cur.name : '') + '」猜数…');
+  renderPlayers($('playerListGame'));
+  renderHistory();
+  // 结算弹窗
+  if (s.status === 'finished' && lastStatus !== 'finished') {
+    showResult(s);
+  } else if (s.status !== 'finished') {
+    $('resultMask').classList.remove('show');
+  }
+  lastStatus = s.status;
+}
+
+function renderPlayers(el) {
+  if (!state) return;
+  el.innerHTML = state.players.map(function (p) {
+    var me = p.id === myId ? ' me' : '';
+    var host = p.id === state.hostId ? ' host' : '';
+    var turn = '';
+    if (state.status === 'playing' && state.players[state.current] && state.players[state.current].id === p.id) {
+      turn = ' <span class="turn-mark">▶ 猜</span>';
+    }
+    return '<span class="chip' + me + host + '">' + p.name + turn + '</span>';
+  }).join('');
+}
+
+function renderHistory() {
+  var h = $('historyList');
+  if (!state.history.length) { h.innerHTML = '<div class="hint">还没有人猜过。</div>'; return; }
+  h.innerHTML = state.history.slice().reverse().map(function (it) {
+    var cls = it.hit ? ' h-item hit' : '';
+    var tag = it.hit === 'treasure' ? '🎁 元宝!' : it.hit === 'mine' ? '💣 地雷!' : '';
+    return '<div class="h-item' + cls + '"><span><b>' + it.name + '</b> 猜 <span class="g">' + it.guess + '</span> ' + tag + '</span><span class="r">范围 ' + it.low + '~' + it.high + '</span></div>';
+  }).join('');
+  h.scrollTop = 0;
+}
+
+/* ---------- 事件 ---------- */
+function tryJoin() {
+  var name = $('inpName').value.trim();
+  if (!name) { toast('请输入昵称'); return; }
+  var code = $('inpCode').value.trim();
+  if (!/^\d{4}$/.test(code)) { toast('房间码为 4 位数字'); return; }
+  myName = name;
+  send({ type: 'joinRoom', code: code, name: name });
+}
+$('btnJoin').addEventListener('click', tryJoin);
+$('inpCode').addEventListener('keydown', function (e) { if (e.key === 'Enter') tryJoin(); });
+
+$('btnCreate').addEventListener('click', function () {
+  var name = $('inpName').value.trim();
+  if (!name) { toast('请输入昵称'); return; }
+  myName = name;
+  send({ type: 'createRoom', name: name });
+});
+$('inpName').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('btnCreate').click(); });
+
+$('btnCopyLink').addEventListener('click', function () {
+  var link = location.origin + location.pathname + '#room=' + state.code;
+  var ta = document.createElement('textarea');
+  ta.value = link; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast('链接已复制,去微信发给朋友吧!'); }
+  catch (e) { toast('请手动复制上面的链接'); }
+  document.body.removeChild(ta);
+});
+
+$('btnRandomStart').addEventListener('click', function () {
+  send({ type: 'startGame' });
+});
+
+$('btnCustomStart').addEventListener('click', function () {
+  $('customRowRoom').classList.toggle('hidden');
+});
+
+$('btnGuess').addEventListener('click', guessNow);
+$('inpGuess').addEventListener('keydown', function (e) { if (e.key === 'Enter') guessNow(); });
+function guessNow() {
+  if (!state || state.status !== 'playing') return;
+  var n = parseInt($('inpGuess').value, 10);
+  if (isNaN(n)) { toast('请输入要猜的数字'); return; }
+  send({ type: 'guess', n: n });
+  $('inpGuess').value = '';
+}
+
+/* 结算弹窗:state 更新为 finished 时展示(每个客户端各自生成题目,保证每人看到自己的随机挑战) */
+var lastStatus = null;
+function showResult(s) {
+  var res = s.result;
+  var isTreasure = res && res.type === 'treasure';
+  $('resIcon').textContent = isTreasure ? '🎁' : '💣';
+  $('resTitle').textContent = isTreasure ? '踩中元宝!' : '踩中地雷!';
+  var chal = randomChallenge();
+  $('resTag').textContent = chal.type === 'truth' ? '真心话' : '大冒险';
+  $('resTag').className = 'tag ' + (chal.type === 'truth' ? 'tag-truth' : 'tag-dare');
+  $('resText').textContent = chal.text;
+  var name = res ? res.name : '';
+  if (isTreasure) {
+    $('resSub').textContent = '「' + name + '」踩中元宝获得奖励!\n奖励:赢家指定一位玩家完成下面的挑战(大家商量指定谁):';
+    $('resExtra').textContent = '🎉 奖励:赢家可以随机指定一位参与者完成挑战!';
+  } else {
+    $('resSub').textContent = '「' + name + '」踩中地雷,接受惩罚!';
+    $('resExtra').textContent = '💥 惩罚:请「' + name + '」完成下面的挑战:';
+  }
+  $('resultMask').classList.add('show');
+}
+
+/* 简单随机挑战(与共享题库一致的子集,避免加载 gamelogic 文件) */
+var TRUTHS = ['你最近一次偷偷哭是因为什么?','在场的人里,你觉得谁最有可能单身一辈子?为什么?','你微信置顶聊天的人是谁(除家人外)?','说出你做过最丢脸的一件事。','你手机里最后一张照片是什么?给大家看看。','你暗恋过在场的人吗?说真话。','你上一次撒谎是什么时候?为了什么?','你最想删除的手机联系人是谁?','你觉得自己身上最自恋的一点是什么?','如果必须在场的人里选一个当对象,你选谁?','你收藏夹里最羞耻的东西是什么?','你最长一次没洗澡是多久?','你做过最冲动的一件事是什么?','在场谁最有可能先脱单?理由。','你上一次说"我爱你"是对谁?','你曾经偷偷搜索过什么奇怪的东西?','你觉得在场谁颜值最高?谁最低?','你从小到大拿过几次奖学金/奖状?'];
+var DARES = ['用方言朗读一首诗或一段话,大家满意为止。','模仿在场一个人的经典动作,直到被猜出是谁。','原地转 5 圈,然后走直线到门口再走回来。','给通讯录里第 3 个人打电话,说"我想你了"。','做一个你最不擅长的动物叫,比如学猪叫。','用屁股写自己的名字(大家猜)。','让在场的人轮流问你一个问题,必须如实回答。','公主抱(或背)在场一个人绕一圈。','学电视剧女主角撒娇说一句"讨厌"。','吃一口柠檬/辣椒/芥末(如有),表情不许变。','现场找一个人对视 30 秒,不许笑。','用「哈哈哈」唱完一首歌的开头。','把袜子穿在手上,做三个俯卧撑。','模仿三种动物的走路姿势。','对在场某个人说一句土味情话。','倒立或靠墙倒立 10 秒(量力而行)。','说出在场所有人的一个优点(每人至少一句)。','用夸张的姿势走一个 T 台,摆 3 个造型。','接受大家给你起的一个外号,并叫自己 3 次。','做 10 个深蹲,边做边大声数数。'];
+function randomChallenge() {
+  var type = Math.random() < 0.5 ? 'truth' : 'dare';
+  var pool = type === 'truth' ? TRUTHS : DARES;
+  return { type: type, text: pool[Math.floor(Math.random() * pool.length)] };
+}
+
+$('btnNewRound').addEventListener('click', function () {
+  $('resultMask').classList.remove('show');
+  if (myId === state.hostId) {
+    send({ type: 'resetRoom' });
+  } else {
+    toast('等待房主开始新一局…');
+  }
+});
+
+/* ---------- 启动 ---------- */
+connect();
+</script>
+</body>
+</html>

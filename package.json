@@ -1,0 +1,14 @@
+{
+  "name": "yuanbao-mine",
+  "version": "1.0.0",
+  "description": "元宝地雷 · 猜数字桌游(真心话大冒险版):面对面同屏 + 微信联机",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node test/logic_test.js && node test/html_check.js && node test/server_test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}

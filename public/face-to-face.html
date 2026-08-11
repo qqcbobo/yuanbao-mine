@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>元宝地雷 · 真心话大冒险</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, #7a1f1f 0%, #a83232 40%, #8a2b2b 100%);
+    min-height: 100vh; color: #fff; overflow-x: hidden;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 40px; }
+  .header { text-align: center; padding: 14px 0 6px; }
+  .header h1 { font-size: 30px; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,.4); }
+  .header h1 .yb { color: #ffd75e; } .header h1 .ld { color: #ff8d8d; }
+  .header p { font-size: 13px; opacity: .85; margin-top: 4px; }
+  .card {
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 16px; padding: 16px; margin-top: 14px;
+    backdrop-filter: blur(4px);
+  }
+  .card h2 { font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .card h2::before { content: ""; width: 4px; height: 16px; background: #ffd75e; border-radius: 2px; display: inline-block; }
+  .row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .row input, .row select {
+    flex: 1; padding: 12px 10px; border-radius: 10px; border: none;
+    font-size: 16px; background: rgba(255,255,255,.16); color: #fff; outline: none;
+  }
+  .row input::placeholder { color: rgba(255,255,255,.6); }
+  .row select option { color: #333; }
+  .btn {
+    border: none; border-radius: 12px; padding: 13px 16px; font-size: 16px;
+    cursor: pointer; transition: transform .08s, opacity .15s; font-weight: 600;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn-gold { background: linear-gradient(180deg,#ffd75e,#f0a500); color: #5a3a00; }
+  .btn-red { background: linear-gradient(180deg,#ff6b6b,#d93b3b); color: #fff; }
+  .btn-gray { background: rgba(255,255,255,.2); color: #fff; }
+  .btn-green { background: linear-gradient(180deg,#5ee0a0,#2fae6d); color: #06381f; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-sm { padding: 8px 12px; font-size: 14px; border-radius: 10px; }
+  .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+  .chip {
+    background: rgba(255,255,255,.15); padding: 8px 14px; border-radius: 20px;
+    font-size: 15px; display: flex; align-items: center; gap: 8px;
+  }
+  .chip .x { cursor: pointer; opacity: .7; font-weight: 700; }
+  .chip .x:active { opacity: 1; }
+  .chip.me { background: #ffd75e; color: #5a3a00; font-weight: 700; }
+  .hint { font-size: 13px; opacity: .8; margin-top: 6px; line-height: 1.5; }
+  /* 游戏区 */
+  .range-box { text-align: center; padding: 10px 0 4px; }
+  .range-num {
+    font-size: 44px; font-weight: 800; letter-spacing: 2px; color: #ffd75e;
+    text-shadow: 0 3px 10px rgba(0,0,0,.5);
+  }
+  .range-label { font-size: 14px; opacity: .85; margin-top: 2px; }
+  .turn-box {
+    text-align: center; margin: 10px 0; padding: 10px;
+    background: rgba(255,215,94,.18); border: 1px dashed #ffd75e; border-radius: 12px;
+  }
+  .turn-name { font-size: 20px; font-weight: 700; color: #ffd75e; }
+  .turn-label { font-size: 13px; opacity: .85; }
+  .history { max-height: 200px; overflow-y: auto; margin-top: 8px; }
+  .h-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px; border-radius: 10px; font-size: 14px; margin-bottom: 6px;
+    background: rgba(255,255,255,.08);
+  }
+  .h-item .g { color: #ffd75e; font-weight: 700; }
+  .h-item .r { color: #b8e6d0; font-size: 12px; }
+  .h-item.hit { background: rgba(255,215,94,.25); }
+  /* 结算弹窗 */
+  .mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.72);
+    display: none; align-items: center; justify-content: center; z-index: 99; padding: 20px;
+  }
+  .mask.show { display: flex; }
+  .modal {
+    width: 100%; max-width: 400px; background: linear-gradient(180deg,#fff7e0,#ffe9b8);
+    color: #5a3a00; border-radius: 20px; padding: 24px 20px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .modal .icon { font-size: 56px; }
+  .modal h3 { font-size: 24px; margin: 8px 0 4px; }
+  .modal .sub { font-size: 15px; margin-bottom: 10px; }
+  .chal {
+    background: #fff; border: 2px solid #f0a500; border-radius: 12px;
+    padding: 14px; margin: 12px 0; font-size: 17px; line-height: 1.6; font-weight: 600;
+  }
+  .chal .tag {
+    display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 12px;
+    color: #fff; margin-bottom: 6px;
+  }
+  .tag-truth { background: #4a9de0; } .tag-dare { background: #e04a4a; }
+  .modal .btn { width: 100%; margin-top: 8px; }
+  .footer { text-align: center; font-size: 12px; opacity: .6; margin-top: 22px; }
+  .toast {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,.8); color: #fff; padding: 10px 18px; border-radius: 20px;
+    font-size: 14px; z-index: 200; display: none; max-width: 88%; text-align: center;
+  }
+  .toast.show { display: block; animation: fadein .2s; }
+  @keyframes fadein { from { opacity: 0; transform: translate(-50%,-8px); } to { opacity: 1; transform: translate(-50%,0); } }
+  .hidden { display: none !important; }
+  .challenge-card { margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1><span class="yb">元宝</span>·<span class="ld">地雷</span></h1>
+    <p>猜数字桌游 · 踩元宝得奖励,踩地雷受惩罚</p>
+  </div>
+
+  <!-- ============ 准备阶段 ============ -->
+  <div id="setupView">
+    <div class="card">
+      <h2>参与玩家</h2>
+      <div class="row">
+        <input id="inpName" type="text" placeholder="输入昵称,回车或点加入" maxlength="10">
+        <button class="btn btn-gold btn-sm" id="btnAdd" style="flex:0 0 auto;">加入</button>
+      </div>
+      <div class="player-list" id="playerList"></div>
+      <div class="hint" id="playerHint">至少 1 名玩家即可开局。</div>
+    </div>
+
+    <div class="card">
+      <h2>开局设置</h2>
+      <div class="row">
+        <select id="selMode">
+          <option value="random">随机生成元宝数字</option>
+          <option value="custom">自定义元宝数字</option>
+        </select>
+      </div>
+      <div class="row hidden" id="customRow">
+        <input id="inpTreasure" type="number" min="1" max="100" placeholder="元宝数字 1~100">
+        <select id="selMineSide" style="flex:0 0 46%;">
+          <option value="auto">地雷方向:自动</option>
+          <option value="+1">地雷:元宝+1</option>
+          <option value="-1">地雷:元宝-1</option>
+        </select>
+      </div>
+      <button class="btn btn-gold" id="btnStart" style="width:100%;">开始游戏</button>
+      <div class="hint">规则:每局范围 1~100,随机藏一个「元宝」和与它相邻的「地雷」。大家循环轮流猜数字,猜的数会把范围向自己这边收窄,直到有人踩中元宝或地雷为止。</div>
+    </div>
+  </div>
+
+  <!-- ============ 游戏阶段 ============ -->
+  <div id="gameView" class="hidden">
+    <div class="card">
+      <div class="range-box">
+        <div class="range-num" id="rangeNum">1 ~ 100</div>
+        <div class="range-label">当前数字范围(元宝和地雷就藏在这里面)</div>
+      </div>
+      <div class="turn-box">
+        <div class="turn-label">轮到</div>
+        <div class="turn-name" id="turnName">—</div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <input id="inpGuess" type="number" placeholder="输入要猜的数字" inputmode="numeric">
+        <button class="btn btn-gold btn-sm" id="btnGuess" style="flex:0 0 auto;font-size:16px;padding:13px 20px;">猜!</button>
+      </div>
+      <button class="btn btn-red btn-sm" id="btnRestart" style="width:100%;">重新开局</button>
+    </div>
+
+    <div class="card">
+      <h2>猜数记录</h2>
+      <div class="history" id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="footer">元宝地雷 · 面对面同屏版 · 微信联机版即将上线</div>
+</div>
+
+<!-- ============ 结算弹窗 ============ -->
+<div class="mask" id="resultMask">
+  <div class="modal" id="resultModal">
+    <div class="icon" id="resIcon">💣</div>
+    <h3 id="resTitle">踩中地雷!</h3>
+    <div class="sub" id="resSub">玩家「XXX」踩中地雷,接受惩罚!</div>
+    <div class="chal" id="resChal">
+      <div><span class="tag tag-dare" id="resTag">大冒险</span></div>
+      <div id="resText">随机题目</div>
+    </div>
+    <div class="hint" style="color:#8a6d2a;" id="resExtra"></div>
+    <button class="btn btn-gold" id="btnNextRound" style="margin-top:14px;">完成!再来一局</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 核心逻辑(内嵌,与 shared/gamelogic.js 一致) ================= */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) { module.exports = factory(); }
+  else { root.GameLogic = factory(); }
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+  var MIN = 1, MAX = 100;
+  var TRUTHS = [
+    '你最近一次偷偷哭是因为什么?',
+    '在场的人里,你觉得谁最有可能单身一辈子?为什么?',
+    '你微信置顶聊天的人是谁(除家人外)?',
+    '说出你做过最丢脸的一件事。',
+    '你手机里最后一张照片是什么?给大家看看。',
+    '你暗恋过在场的人吗?说真话。',
+    '你一个月的生活费/零花钱大概多少?',
+    '你上一次撒谎是什么时候?为了什么?',
+    '你最想删除的手机联系人是谁?',
+    '你觉得自己身上最自恋的一点是什么?',
+    '如果必须在场的人里选一个当对象,你选谁?',
+    '你收藏夹里最羞耻的东西是什么?',
+    '你最长一次没洗澡是多久?',
+    '说出你最近的体重或身高。',
+    '你做过最冲动的一件事是什么?',
+    '在场谁最有可能先脱单?理由。',
+    '你上一次说"我爱你"是对谁?',
+    '你曾经偷偷搜索过什么奇怪的东西?',
+    '你觉得在场谁颜值最高?谁最低?',
+    '你从小到大拿过几次奖学金/奖状?'
+  ];
+  var DARES = [
+    '用方言朗读一首诗或一段话,大家满意为止。',
+    '模仿在场一个人的经典动作,直到被猜出是谁。',
+    '原地转 5 圈,然后走直线到门口再走回来。',
+    '给通讯录里第 3 个人打电话,说"我想你了"。',
+    '做一个你最不擅长的动物叫,比如学猪叫。',
+    '用屁股写自己的名字(大家猜)。',
+    '让在场的人轮流问你一个问题,必须如实回答。',
+    '公主抱(或背)在场一个人绕一圈。',
+    '学电视剧女主角撒娇说一句"讨厌"。',
+    '吃一口柠檬/辣椒/芥末(如有),表情不许变。',
+    '现场找一个人对视 30 秒,不许笑。',
+    '用「哈哈哈」唱完一首歌的开头。',
+    '把袜子穿在手上,做三个俯卧撑。',
+    '模仿三种动物的走路姿势。',
+    '对在场某个人说一句土味情话。',
+    '倒立或靠墙倒立 10 秒(量力而行)。',
+    '说出在场所有人的一个优点(每人至少一句)。',
+    '用夸张的姿势走一个 T 台,摆 3 个造型。',
+    '接受大家给你起的一个外号,并叫自己 3 次。',
+    '做 10 个深蹲,边做边大声数数。'
+  ];
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function createGame(opts) {
+    opts = opts || {};
+    var min = opts.min || MIN, max = opts.max || MAX;
+    var treasure = opts.seed !== undefined ? opts.seed : randInt(min, max);
+    var sides = [];
+    if (treasure + 1 <= max) sides.push(1);
+    if (treasure - 1 >= min) sides.push(-1);
+    if (!sides.length) throw new Error('元宝位置不合法:无法放置相邻地雷');
+    var dir = opts.mineSide === '+1' ? 1 : opts.mineSide === '-1' ? -1 : sides[randInt(0, sides.length - 1)];
+    if (sides.indexOf(dir) === -1) dir = sides[0];
+    return {
+      min: min, max: max, treasure: treasure, mine: treasure + dir,
+      low: min, high: max, status: 'playing',
+      players: [], current: 0, history: [],
+      winnerId: null, loserId: null, result: null
+    };
+  }
+  var _uid = 1;
+  function addPlayer(game, name) {
+    name = String(name || '').trim();
+    if (!name) return { ok: false, error: '昵称不能为空' };
+    var id = 'p' + (_uid++);
+    game.players.push({ id: id, name: name });
+    return { ok: true, player: { id: id, name: name } };
+  }
+  function removePlayer(game, playerId) {
+    var idx = -1;
+    for (var i = 0; i < game.players.length; i++) if (game.players[i].id === playerId) { idx = i; break; }
+    if (idx === -1) return { ok: false, error: '玩家不存在' };
+    game.players.splice(idx, 1);
+    if (game.players.length === 0) { game.current = 0; }
+    else {
+      if (idx < game.current) game.current--;
+      if (game.current >= game.players.length) game.current = 0;
+    }
+    return { ok: true };
+  }
+  function currentPlayer(game) {
+    if (!game.players.length) return null;
+    return game.players[game.current] || null;
+  }
+  function guess(game, playerId, n) {
+    if (game.status !== 'playing') return { ok: false, error: '本局已结束,请开始新一局' };
+    if (!Number.isInteger(n)) return { ok: false, error: '请输入整数' };
+    var cur = currentPlayer(game);
+    if (!cur) return { ok: false, error: '还没有玩家加入' };
+    if (cur.id !== playerId) return { ok: false, error: '还没轮到你,当前轮到:' + cur.name };
+    if (n < game.low || n > game.high) return { ok: false, error: '超出范围,当前范围是 ' + game.low + ' ~ ' + game.high };
+    var hit = null;
+    if (n === game.treasure) hit = 'treasure';
+    else if (n === game.mine) hit = 'mine';
+    if (!hit) {
+      if (n === game.low || n === game.high) return { ok: false, error: '数字 ' + n + ' 已是边界,没有收窄效果,请换个数字' };
+      var mid = (game.low + game.high) / 2;
+      var newLow = game.low, newHigh = game.high;
+      if (n <= mid) newLow = n; else newHigh = n;
+      var containsTreasure = (newLow <= game.treasure && game.treasure <= newHigh);
+      var containsMine = (newLow <= game.mine && game.mine <= newHigh);
+      if (!containsTreasure && !containsMine) return { ok: false, error: '数字 ' + n + ' 会把元宝/地雷排除出范围,请换个数字猜' };
+      game.low = newLow; game.high = newHigh;
+    }
+    game.history.push({ playerId: cur.id, name: cur.name, guess: n, low: game.low, high: game.high, hit: hit });
+    if (hit === 'treasure') {
+      game.status = 'finished'; game.winnerId = cur.id;
+      game.result = { type: 'treasure', playerId: cur.id, name: cur.name, guess: n };
+    } else if (hit === 'mine') {
+      game.status = 'finished'; game.loserId = cur.id;
+      game.result = { type: 'mine', playerId: cur.id, name: cur.name, guess: n };
+    } else {
+      game.current = (game.current + 1) % game.players.length;
+    }
+    return { ok: true, hit: hit, game: game };
+  }
+  function randomChallenge() {
+    var type = Math.random() < 0.5 ? 'truth' : 'dare';
+    var pool = type === 'truth' ? TRUTHS : DARES;
+    return { type: type, text: pool[randInt(0, pool.length - 1)] };
+  }
+  function pickRewardTarget(game, winnerId) {
+    var others = game.players.filter(function (p) { return p.id !== winnerId; });
+    var pool = others.length > 0 ? others : game.players;
+    return pool[randInt(0, pool.length - 1)];
+  }
+  return {
+    MIN: MIN, MAX: MAX, TRUTHS: TRUTHS, DARES: DARES,
+    createGame: createGame, addPlayer: addPlayer, removePlayer: removePlayer,
+    currentPlayer: currentPlayer,
+    guess: guess, randomChallenge: randomChallenge, pickRewardTarget: pickRewardTarget
+  };
+});
+/* ================= UI ================= */
+var G = window.GameLogic;
+var game = null;
+var $ = function (id) { return document.getElementById(id); };
+
+function toast(msg) {
+  var t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer); t._timer = setTimeout(function () { t.classList.remove('show'); }, 2200);
+}
+
+/* ---- 准备阶段 ---- */
+function renderPlayers() {
+  var list = $('playerList');
+  if (!game) { list.innerHTML = '<div class="hint" style="border:none;">暂无玩家</div>'; return; }
+  list.innerHTML = game.players.map(function (p) {
+    return '<span class="chip">' + p.name + '<span class="x" data-id="' + p.id + '">✕</span></span>';
+  }).join('');
+  $('playerHint').textContent = game.players.length >= 1 ? '已加入 ' + game.players.length + ' 人,可以开局!' : '至少 1 名玩家即可开局。';
+}
+$('playerList').addEventListener('click', function (e) {
+  var x = e.target.closest('.x'); if (!x) return;
+  G.removePlayer(game, x.getAttribute('data-id'));
+  renderPlayers();
+});
+function addPlayerByName() {
+  var inp = $('inpName'); var name = inp.value.trim();
+  if (!name) { toast('请输入昵称'); return; }
+  if (game.players.length >= 20) { toast('最多 20 名玩家'); return; }
+  var r = G.addPlayer(game, name);
+  if (!r.ok) { toast(r.error); return; }
+  inp.value = ''; inp.focus(); renderPlayers();
+}
+$('btnAdd').addEventListener('click', addPlayerByName);
+$('inpName').addEventListener('keydown', function (e) { if (e.key === 'Enter') addPlayerByName(); });
+$('selMode').addEventListener('change', function () {
+  $('customRow').classList.toggle('hidden', this.value !== 'custom');
+});
+$('btnStart').addEventListener('click', function () {
+  if (!game || game.players.length < 1) { toast('请先加入至少 1 名玩家'); return; }
+  var mode = $('selMode').value;
+  var opts = {};
+  if (mode === 'custom') {
+    var tv = parseInt($('inpTreasure').value, 10);
+    if (isNaN(tv) || tv < 1 || tv > 100) { toast('元宝数字需在 1~100 之间'); return; }
+    opts.seed = tv;
+    var side = $('selMineSide').value;
+    if (side === '+1' || side === '-1') opts.mineSide = side;
+  }
+  var g;
+  try { g = G.createGame(opts); } catch (e) { toast(e.message); return; }
+  g.players = game.players.slice();
+  game = g;
+  $('setupView').classList.add('hidden');
+  $('gameView').classList.remove('hidden');
+  renderGame();
+});
+$('inpTreasure').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('btnStart').click(); });
+
+/* ---- 游戏阶段 ---- */
+function renderGame() {
+  if (!game) return;
+  $('rangeNum').textContent = game.low + ' ~ ' + game.high;
+  var cur = G.currentPlayer(game);
+  $('turnName').textContent = cur ? cur.name : '—';
+  renderHistory();
+}
+function renderHistory() {
+  var h = $('historyList');
+  if (!game.history.length) { h.innerHTML = '<div class="hint">还没有人猜过。</div>'; return; }
+  h.innerHTML = game.history.slice().reverse().map(function (it) {
+    var cls = it.hit ? ' h-item hit' : '';
+    var tag = it.hit === 'treasure' ? '🎁 元宝!' : it.hit === 'mine' ? '💣 地雷!' : '';
+    return '<div class="h-item' + cls + '"><span><b>' + it.name + '</b> 猜 <span class="g">' + it.guess + '</span> ' + tag + '</span><span class="r">范围 ' + it.low + '~' + it.high + '</span></div>';
+  }).join('');
+  h.scrollTop = 0;
+}
+$('btnGuess').addEventListener('click', guessNow);
+$('inpGuess').addEventListener('keydown', function (e) { if (e.key === 'Enter') guessNow(); });
+function guessNow() {
+  if (!game || game.status !== 'playing') return;
+  var n = parseInt($('inpGuess').value, 10);
+  if (isNaN(n)) { toast('请输入要猜的数字'); return; }
+  var cur = G.currentPlayer(game);
+  var r = G.guess(game, cur.id, n);
+  if (!r.ok) { toast(r.error); $('inpGuess').value = ''; return; }
+  $('inpGuess').value = '';
+  renderGame();
+  if (game.status === 'finished') showResult();
+}
+$('btnRestart').addEventListener('click', function () {
+  $('gameView').classList.add('hidden');
+  $('setupView').classList.remove('hidden');
+  game = G.createGame();
+  renderPlayers();
+});
+
+/* ---- 结算 ---- */
+function showResult() {
+  var res = game.result;
+  var isTreasure = res.type === 'treasure';
+  $('resIcon').textContent = isTreasure ? '🎁' : '💣';
+  $('resTitle').textContent = isTreasure ? '踩中元宝!' : '踩中地雷!';
+  var chal = G.randomChallenge();
+  var tagCls = chal.type === 'truth' ? 'tag-truth' : 'tag-dare';
+  $('resTag').textContent = chal.type === 'truth' ? '真心话' : '大冒险';
+  $('resTag').className = 'tag ' + tagCls;
+  $('resText').textContent = chal.text;
+  if (isTreasure) {
+    var tgt = G.pickRewardTarget(game, res.playerId);
+    $('resSub').textContent = '「' + res.name + '」踩中元宝获得奖励!';
+    $('resExtra').textContent = '🎉 奖励:指定「' + tgt.name + '」完成下面的挑战:';
+  } else {
+    $('resSub').textContent = '「' + res.name + '」踩中地雷,接受惩罚!';
+    $('resExtra').textContent = '💥 惩罚:请完成下面的挑战:';
+  }
+  $('resultMask').classList.add('show');
+}
+$('btnNextRound').addEventListener('click', function () {
+  $('resultMask').classList.remove('show');
+  $('gameView').classList.add('hidden');
+  $('setupView').classList.remove('hidden');
+  game = G.createGame();
+  renderPlayers();
+});
+
+/* ---- 初始化 ---- */
+game = G.createGame();
+renderPlayers();
+</script>
+</body>
+</html>
