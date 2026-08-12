@@ -26,6 +26,18 @@
   }
   @keyframes float1 { from { transform: translate(0,0) scale(1); } to { transform: translate(-40px,30px) scale(1.15); } }
   @keyframes float2 { from { transform: translate(0,0) scale(1.1); } to { transform: translate(50px,-30px) scale(.95); } }
+  /* 漂浮金币粒子 */
+  .particles { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .particles span {
+    position: absolute; bottom: -60px; font-size: 26px; opacity: 0;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: .8; }
+    90% { opacity: .5; }
+    100% { transform: translateY(-105vh) rotate(360deg); opacity: 0; }
+  }
   .wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 40px; position: relative; z-index: 1; }
   .header { text-align: center; padding: 14px 0 6px; }
   .header .title-badge {
@@ -153,6 +165,8 @@
 </style>
 </head>
 <body>
+<!-- 漂浮金币粒子装饰 -->
+<div class="particles" id="particles"></div>
 <div class="wrap">
   <div class="header">
     <div class="title-badge">🎲 真心话大冒险</div>
@@ -163,7 +177,7 @@
   <!-- ============ 准备阶段 ============ -->
   <div id="setupView">
     <div class="card">
-      <h2>参与玩家</h2>
+      <h2>👥 参与玩家</h2>
       <div class="row">
         <input id="inpName" type="text" placeholder="输入昵称,回车或点加入" maxlength="10">
         <button class="btn btn-gold btn-sm" id="btnAdd" style="flex:0 0 auto;">加入</button>
@@ -173,7 +187,7 @@
     </div>
 
     <div class="card">
-      <h2>开局设置</h2>
+      <h2>⚙️ 开局设置</h2>
       <div class="row">
         <select id="selMode">
           <option value="random">随机生成元宝数字</option>
@@ -212,7 +226,7 @@
     </div>
 
     <div class="card">
-      <h2>猜数记录</h2>
+      <h2>📜 猜数记录</h2>
       <div class="history" id="historyList"></div>
     </div>
   </div>
@@ -574,6 +588,22 @@ $('btnNextRound').addEventListener('click', function () {
 /* ---- 初始化 ---- */
 game = G.createGame();
 renderPlayers();
+
+/* ---- 漂浮粒子 ---- */
+(function () {
+  var box = document.getElementById('particles');
+  if (!box) return;
+  var icons = ['🪙', '💰', '💎', '✨', '🎁', '⭐', '🔥'];
+  for (var i = 0; i < 14; i++) {
+    var s = document.createElement('span');
+    s.textContent = icons[Math.floor(Math.random() * icons.length)];
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.fontSize = (16 + Math.random() * 22) + 'px';
+    s.style.animationDuration = (8 + Math.random() * 10) + 's';
+    s.style.animationDelay = (Math.random() * 8) + 's';
+    box.appendChild(s);
+  }
+})();
 </script>
 </body>
 </html>

@@ -27,6 +27,18 @@
   }
   @keyframes float1 { from { transform: translate(0,0) scale(1); } to { transform: translate(-40px,30px) scale(1.15); } }
   @keyframes float2 { from { transform: translate(0,0) scale(1.1); } to { transform: translate(50px,-30px) scale(.95); } }
+  /* 漂浮金币粒子 */
+  .particles { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .particles span {
+    position: absolute; bottom: -60px; font-size: 26px; opacity: 0;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: .8; }
+    90% { opacity: .5; }
+    100% { transform: translateY(-105vh) rotate(360deg); opacity: 0; }
+  }
   .wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 40px; position: relative; z-index: 1; }
   .header { text-align: center; padding: 14px 0 6px; }
   .header .title-badge {
@@ -167,6 +179,8 @@
 </head>
 <body>
 <div class="connbar" id="connBar">连接断开,正在重连…</div>
+<!-- 漂浮金币粒子装饰 -->
+<div class="particles" id="particles"></div>
 <div class="wrap">
   <div class="header">
     <div class="title-badge">🎲 真心话大冒险</div>
@@ -177,7 +191,7 @@
   <!-- ============ 入口:昵称 + 创建/加入 ============ -->
   <div id="enterView">
     <div class="card">
-      <h2>进入游戏</h2>
+      <h2>🎮 进入游戏</h2>
       <div class="row">
         <input id="inpName" type="text" placeholder="输入你的昵称" maxlength="10">
       </div>
@@ -195,14 +209,14 @@
   <!-- ============ 房间等待(未开局) ============ -->
   <div id="roomView" class="hidden">
     <div class="card">
-      <h2>房间 <span id="roomCodeLabel" style="color:#ffd75e;"></span></h2>
+      <h2>🏠 房间 <span id="roomCodeLabel" style="color:#ffd75e;"></span></h2>
       <div class="roomcode" id="roomCodeBig">----</div>
       <div class="hint" style="text-align:center;">把房间码或下面的链接发给微信朋友,一起加入</div>
       <div class="roomlink" id="roomLink">链接生成中…</div>
       <button class="btn btn-gray btn-sm" id="btnCopyLink" style="width:100%;margin-top:6px;">复制房间链接</button>
     </div>
     <div class="card">
-      <h2>玩家列表(<span id="playerCount">0</span>人)</h2>
+      <h2>👥 玩家列表(<span id="playerCount">0</span>人)</h2>
       <div class="player-list" id="playerListRoom"></div>
       <div class="row hidden" id="customRowRoom">
         <input id="inpTreasureRoom" type="number" min="1" max="100" placeholder="元宝数字 1~100">
@@ -239,9 +253,9 @@
     </div>
 
     <div class="card">
-      <h2>玩家列表</h2>
+      <h2>👥 玩家列表</h2>
       <div class="player-list" id="playerListGame"></div>
-      <h2 style="margin-top:14px;">猜数记录</h2>
+      <h2 style="margin-top:14px;">📜 猜数记录</h2>
       <div class="history" id="historyList"></div>
     </div>
   </div>
@@ -494,6 +508,22 @@ $('btnNewRound').addEventListener('click', function () {
     toast('等待房主操作…');
   }
 });
+
+/* ---------- 漂浮粒子 ---------- */
+(function () {
+  var box = $('particles');
+  if (!box) return;
+  var icons = ['🪙', '💰', '💎', '✨', '🎁', '⭐', '🔥'];
+  for (var i = 0; i < 14; i++) {
+    var s = document.createElement('span');
+    s.textContent = icons[Math.floor(Math.random() * icons.length)];
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.fontSize = (16 + Math.random() * 22) + 'px';
+    s.style.animationDuration = (8 + Math.random() * 10) + 's';
+    s.style.animationDelay = (Math.random() * 8) + 's';
+    box.appendChild(s);
+  }
+})();
 
 /* ---------- 启动 ---------- */
 connect();
