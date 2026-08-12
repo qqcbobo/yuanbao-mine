@@ -144,6 +144,37 @@ async function run(port) {
   var m9 = await host.next();
   assert(m9.type === 'error', '结束后猜被拒');
 
+  /* --- 场景 6b:游戏已结束时,新玩家可以加入(一局结束后可以进) --- */
+  var p5 = await client(port); p5.tag('p5');
+  p5.send({ type: 'joinRoom', code: code, name: '新玩家' });
+  var m9b = await p5.next();
+  assert(m9b.type === 'ok', '游戏结束后新玩家可加入');
+  eq(m9b.state.players.length, 4, '加入后 4 名玩家');
+  // 消费加入广播(host/p2/p3 各一条)
+  await host.next();
+  await p2.next();
+  await p3.next();
+  p5.ws.close();
+  // 等离开广播并消费
+  await new Promise(function (r) { setTimeout(r, 300); });
+  var m9c = await host.next();
+  assert(m9c.type === 'state', '离开广播到达');
+  eq(m9c.state.players.length, 3, '离开后恢复 3 名玩家');
+  await p2.next();
+  await p3.next();
+
+  /* --- 场景 6c:游戏进行中,新玩家加入被拒 --- */
+  host.send({ type: 'startGame' });
+  await host.next();
+  await p2.next();
+  await p3.next();
+  var p6 = await client(port); p6.tag('p6');
+  p6.send({ type: 'joinRoom', code: code, name: '中途闯入' });
+  var m9d = await p6.next();
+  assert(m9d.type === 'error', '游戏进行中新玩家加入被拒');
+  assert(/进行中/.test(m9d.message), '拒绝提示说明游戏进行中');
+  p6.ws.close();
+
   /* --- 场景 7:非房主重置被拒,房主重置成功 --- */
   p2.send({ type: 'resetRoom' });
   var m10 = await p2.next();

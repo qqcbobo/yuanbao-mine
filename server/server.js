@@ -90,6 +90,10 @@ function onJoin(ws, msg) {
   var room = rooms.get(code);
   if (!room) return sendErr(ws, '房间不存在,请检查房间码');
   if (room.sockets.size >= 20) return sendErr(ws, '房间已满(20人)');
+  // 游戏进行中禁止中途加入(规则:游戏期间不允许玩家进来,一局结束后可以进)
+  if (room.started && room.game.status === 'playing') {
+    return sendErr(ws, '本局已在进行中,请等这局结束(房主开新局)后再加入');
+  }
   var r = G.addPlayer(room.game, name);
   if (!r.ok) return sendErr(ws, r.error);
 
