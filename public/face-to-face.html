@@ -8,71 +8,110 @@
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: linear-gradient(160deg, #7a1f1f 0%, #a83232 40%, #8a2b2b 100%);
-    min-height: 100vh; color: #fff; overflow-x: hidden;
+    background: linear-gradient(160deg, #3d0f1e 0%, #8a2b2b 40%, #7a1f3f 75%, #3d1e4a 100%);
+    min-height: 100vh; color: #fff; overflow-x: hidden; position: relative;
   }
-  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 40px; }
+  /* 动态光斑背景 */
+  body::before, body::after {
+    content: ""; position: fixed; border-radius: 50%; filter: blur(60px);
+    pointer-events: none; z-index: 0;
+  }
+  body::before {
+    width: 340px; height: 340px; background: rgba(255,180,60,.25);
+    top: -80px; right: -80px; animation: float1 12s ease-in-out infinite alternate;
+  }
+  body::after {
+    width: 300px; height: 300px; background: rgba(255,90,120,.22);
+    bottom: -60px; left: -60px; animation: float2 14s ease-in-out infinite alternate;
+  }
+  @keyframes float1 { from { transform: translate(0,0) scale(1); } to { transform: translate(-40px,30px) scale(1.15); } }
+  @keyframes float2 { from { transform: translate(0,0) scale(1.1); } to { transform: translate(50px,-30px) scale(.95); } }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 40px; position: relative; z-index: 1; }
   .header { text-align: center; padding: 14px 0 6px; }
-  .header h1 { font-size: 30px; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,.4); }
-  .header h1 .yb { color: #ffd75e; } .header h1 .ld { color: #ff8d8d; }
-  .header p { font-size: 13px; opacity: .85; margin-top: 4px; }
-  .card {
-    background: rgba(255,255,255,.10);
-    border: 1px solid rgba(255,255,255,.18);
-    border-radius: 16px; padding: 16px; margin-top: 14px;
-    backdrop-filter: blur(4px);
+  .header .title-badge {
+    display: inline-block; font-size: 12px; letter-spacing: 3px; color: #ffd75e;
+    background: rgba(255,215,94,.12); border: 1px solid rgba(255,215,94,.4);
+    padding: 4px 14px; border-radius: 20px; margin-bottom: 8px;
   }
-  .card h2 { font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-  .card h2::before { content: ""; width: 4px; height: 16px; background: #ffd75e; border-radius: 2px; display: inline-block; }
+  .header h1 {
+    font-size: 36px; letter-spacing: 3px;
+    background: linear-gradient(180deg, #ffe9a8, #ffd75e 45%, #f0a500);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.45));
+  }
+  .header h1 .ld { background: linear-gradient(180deg,#ffb3b3,#ff6b6b 50%,#d93b3b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .header p { font-size: 13px; opacity: .9; margin-top: 6px; letter-spacing: 1px; }
+  .card {
+    background: rgba(255,255,255,.09);
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 20px; padding: 18px; margin-top: 16px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .card h2 {
+    font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+    color: #ffe9a8;
+  }
+  .card h2::before { content: ""; width: 4px; height: 16px; background: linear-gradient(180deg,#ffd75e,#f0a500); border-radius: 2px; display: inline-block; }
   .row { display: flex; gap: 8px; margin-bottom: 10px; }
   .row input, .row select {
-    flex: 1; padding: 12px 10px; border-radius: 10px; border: none;
-    font-size: 16px; background: rgba(255,255,255,.16); color: #fff; outline: none;
+    flex: 1; padding: 12px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2);
+    font-size: 16px; background: rgba(255,255,255,.12); color: #fff; outline: none;
+    transition: border-color .2s, box-shadow .2s;
   }
-  .row input::placeholder { color: rgba(255,255,255,.6); }
+  .row input:focus, .row select:focus { border-color: #ffd75e; box-shadow: 0 0 0 3px rgba(255,215,94,.2); }
+  .row input::placeholder { color: rgba(255,255,255,.55); }
   .row select option { color: #333; }
   .btn {
-    border: none; border-radius: 12px; padding: 13px 16px; font-size: 16px;
-    cursor: pointer; transition: transform .08s, opacity .15s; font-weight: 600;
+    border: none; border-radius: 14px; padding: 13px 16px; font-size: 16px;
+    cursor: pointer; transition: transform .08s, box-shadow .15s, opacity .15s; font-weight: 700;
+    box-shadow: 0 5px 15px rgba(0,0,0,.25);
   }
-  .btn:active { transform: scale(.96); }
-  .btn-gold { background: linear-gradient(180deg,#ffd75e,#f0a500); color: #5a3a00; }
-  .btn-red { background: linear-gradient(180deg,#ff6b6b,#d93b3b); color: #fff; }
+  .btn:active { transform: scale(.95); }
+  .btn-gold { background: linear-gradient(180deg,#ffe28a,#ffd75e 40%,#eda800); color: #5a3a00; box-shadow: 0 6px 18px rgba(255,200,80,.35); }
+  .btn-red { background: linear-gradient(180deg,#ff8282,#d93b3b); color: #fff; box-shadow: 0 6px 18px rgba(217,59,59,.35); }
   .btn-gray { background: rgba(255,255,255,.2); color: #fff; }
-  .btn-green { background: linear-gradient(180deg,#5ee0a0,#2fae6d); color: #06381f; }
-  .btn:disabled { opacity: .45; cursor: not-allowed; }
-  .btn-sm { padding: 8px 12px; font-size: 14px; border-radius: 10px; }
+  .btn-green { background: linear-gradient(180deg,#6ff0ae,#2fae6d); color: #06381f; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+  .btn-sm { padding: 8px 12px; font-size: 14px; border-radius: 12px; }
   .player-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
   .chip {
-    background: rgba(255,255,255,.15); padding: 8px 14px; border-radius: 20px;
+    background: rgba(255,255,255,.14); padding: 8px 14px; border-radius: 20px;
     font-size: 15px; display: flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  .chip.me {
+    background: linear-gradient(180deg,#ffe9a8,#ffd75e); color: #5a3a00; font-weight: 700;
+    border-color: #f0a500; box-shadow: 0 4px 12px rgba(255,215,94,.3);
   }
   .chip .x { cursor: pointer; opacity: .7; font-weight: 700; }
   .chip .x:active { opacity: 1; }
-  .chip.me { background: #ffd75e; color: #5a3a00; font-weight: 700; }
-  .hint { font-size: 13px; opacity: .8; margin-top: 6px; line-height: 1.5; }
+  .hint { font-size: 13px; opacity: .85; margin-top: 6px; line-height: 1.5; }
   /* 游戏区 */
   .range-box { text-align: center; padding: 10px 0 4px; }
   .range-num {
-    font-size: 44px; font-weight: 800; letter-spacing: 2px; color: #ffd75e;
-    text-shadow: 0 3px 10px rgba(0,0,0,.5);
+    font-size: 48px; font-weight: 800; letter-spacing: 2px;
+    background: linear-gradient(180deg,#ffe9a8,#ffd75e 60%,#f0a500); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,.45));
   }
-  .range-label { font-size: 14px; opacity: .85; margin-top: 2px; }
+  .range-label { font-size: 14px; opacity: .9; margin-top: 2px; }
   .turn-box {
-    text-align: center; margin: 10px 0; padding: 10px;
-    background: rgba(255,215,94,.18); border: 1px dashed #ffd75e; border-radius: 12px;
+    text-align: center; margin: 10px 0; padding: 12px;
+    background: linear-gradient(135deg, rgba(255,215,94,.22), rgba(255,215,94,.08));
+    border: 1px solid rgba(255,215,94,.4); border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(255,215,94,.12);
   }
-  .turn-name { font-size: 20px; font-weight: 700; color: #ffd75e; }
+  .turn-name { font-size: 22px; font-weight: 700; color: #ffe9a8; text-shadow: 0 2px 6px rgba(0,0,0,.3); }
   .turn-label { font-size: 13px; opacity: .85; }
-  .history { max-height: 200px; overflow-y: auto; margin-top: 8px; }
+  .history { max-height: 200px; overflow-y: auto; margin-top: 8px; scrollbar-width: thin; }
   .h-item {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 10px; border-radius: 10px; font-size: 14px; margin-bottom: 6px;
-    background: rgba(255,255,255,.08);
+    padding: 9px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 6px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.07);
   }
   .h-item .g { color: #ffd75e; font-weight: 700; }
   .h-item .r { color: #b8e6d0; font-size: 12px; }
-  .h-item.hit { background: rgba(255,215,94,.25); }
+  .h-item.hit { background: rgba(255,215,94,.22); border-color: rgba(255,215,94,.35); }
   /* 结算弹窗 */
   .mask {
     position: fixed; inset: 0; background: rgba(0,0,0,.72);
@@ -81,15 +120,19 @@
   .mask.show { display: flex; }
   .modal {
     width: 100%; max-width: 400px; background: linear-gradient(180deg,#fff7e0,#ffe9b8);
-    color: #5a3a00; border-radius: 20px; padding: 24px 20px; text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    color: #5a3a00; border-radius: 22px; padding: 24px 20px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(255,215,94,.3);
+    animation: pop .25s ease-out;
   }
-  .modal .icon { font-size: 56px; }
-  .modal h3 { font-size: 24px; margin: 8px 0 4px; }
+  @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal .icon { font-size: 60px; animation: bounce 1.2s ease-in-out infinite; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  .modal h3 { font-size: 26px; margin: 8px 0 4px; }
   .modal .sub { font-size: 15px; margin-bottom: 10px; }
   .chal {
-    background: #fff; border: 2px solid #f0a500; border-radius: 12px;
+    background: #fff; border: 2px solid #f0a500; border-radius: 14px;
     padding: 14px; margin: 12px 0; font-size: 17px; line-height: 1.6; font-weight: 600;
+    box-shadow: inset 0 2px 8px rgba(240,165,0,.15);
   }
   .chal .tag {
     display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 12px;
@@ -112,6 +155,7 @@
 <body>
 <div class="wrap">
   <div class="header">
+    <div class="title-badge">🎲 真心话大冒险</div>
     <h1><span class="yb">元宝</span>·<span class="ld">地雷</span></h1>
     <p>猜数字桌游 · 踩元宝得奖励,踩地雷受惩罚</p>
   </div>
