@@ -96,7 +96,24 @@ assert(r85b.ok, '猜85应成功(85>79→新上界58~85)');
 eq(g58.high, 85, '猜85后上界=85');
 assert(g58.mine >= g58.low && g58.mine <= g58.high, '猜85后地雷仍在范围内');
 
-/* --- 10. 猜中元宝 78 结束 --- */
+/* --- 9d. 用户举例:地雷=20(元宝21),猜 19 → 19~100;猜 50 → 19~50;只要不踩中地雷都能猜 --- */
+var gd = G.createGame({ seed: 21, mineSide: '-1' });
+eq(gd.treasure, 21, '元宝=21');
+eq(gd.mine, 20, '地雷=20(相邻-1)');
+G.addPlayer(gd, '甲');
+var dj = gd.players[0].id;
+var rd1 = G.guess(gd, dj, 19);
+assert(rd1.ok, '雷20猜19应成功(19<20→新下界)');
+eq(gd.low, 19, '猜19后下界=19');
+eq(gd.high, 100, '猜19后上界=100');
+assert(gd.mine >= gd.low && gd.mine <= gd.high, '猜19后地雷20仍在范围内');
+var rd2 = G.guess(gd, dj, 50);
+assert(rd2.ok, '雷20猜50应成功(50>20→新上界)');
+eq(gd.low, 19, '猜50后下界=19');
+eq(gd.high, 50, '猜50后上界=50');
+assert(gd.mine >= gd.low && gd.mine <= gd.high, '猜50后地雷20仍在范围内');
+var rd3 = G.guess(gd, dj, 20);
+assert(rd3.ok && rd3.hit === 'mine', '猜20命中地雷结束');
 // 现在范围 70~85,轮到 p2。78 在范围内。让 p2 猜 78。
 var g4 = G.guess(g, p2, 78);
 assert(g4.ok && g4.hit === 'treasure', '猜78应命中元宝');
