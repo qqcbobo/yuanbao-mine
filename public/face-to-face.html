@@ -299,8 +299,8 @@
     else if (n === game.mine) hit = 'mine';
     if (!hit) {
       if (n === game.low || n === game.high) return { ok: false, error: '数字 ' + n + ' 已是边界,没有收窄效果,请换个数字' };
-      // 收窄:猜的数保留「包含宝藏」的半边(小于宝藏→下界,大于宝藏→上界)
-      if (n < game.treasure) game.low = n; else game.high = n;
+      // 收窄:猜的数保留「包含地雷」的半边(小于地雷→下界,大于地雷→上界)
+      if (n < game.mine) game.low = n; else game.high = n;
     }
     game.history.push({ playerId: cur.id, name: cur.name, guess: n, low: game.low, high: game.high, hit: hit });
     if (hit === 'treasure') {
