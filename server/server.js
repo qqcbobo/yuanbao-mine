@@ -141,6 +141,20 @@ function onReset(ws) {
   broadcast(room, { type: 'state', state: roomState(room) });
 }
 
+/* 再来一局(仅房主):保留玩家,直接开新局(随机元宝) */
+function onNextRound(ws) {
+  if (!ws.roomCode) return sendErr(ws, '请先加入房间');
+  var room = rooms.get(ws.roomCode);
+  if (!room) return sendErr(ws, '房间不存在');
+  if (ws.playerId !== room.hostId) return sendErr(ws, '只有房主可以开始新一局');
+  var oldPlayers = room.game.players.slice();
+  room.game = G.createGame();
+  room.game.players = oldPlayers.filter(function (p) { return room.sockets.has(p.id); });
+  room.game.current = 0;
+  room.started = true;
+  broadcast(room, { type: 'state', state: roomState(room) });
+}
+
 /* 猜数字 */
 function onGuess(ws, msg) {
   if (!ws.roomCode) return sendErr(ws, '请先加入房间');
@@ -194,6 +208,7 @@ function createServer() {
         case 'joinRoom': return onJoin(ws, msg);
         case 'startGame': return onStart(ws, msg);
         case 'resetRoom': return onReset(ws);
+        case 'nextRound': return onNextRound(ws);
         case 'guess': return onGuess(ws, msg);
         case 'leave': return onLeave(ws);
         default: sendErr(ws, '未知消息类型');

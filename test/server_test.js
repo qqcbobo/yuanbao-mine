@@ -187,6 +187,18 @@ async function run(port) {
   await p2.next();
   await p3.next();
 
+  /* --- 场景 7b:再来一局(nextRound)仅房主可触发,直接开新局 --- */
+  p2.send({ type: 'nextRound' });
+  var m11b = await p2.next();
+  assert(m11b.type === 'error', '非房主 nextRound 被拒');
+  host.send({ type: 'nextRound' });
+  var m11c = await host.next();
+  assert(m11c.type === 'state' && m11c.state.started === true, '房主 nextRound 直接开新局');
+  assert(m11c.state.status === 'playing' && m11c.state.history.length === 0, '新局进行中且无历史');
+  eq(m11c.state.players.length, 3, '新局保留 3 名玩家');
+  await p2.next();
+  await p3.next();
+
   /* --- 场景 8:加入不存在的房间被拒 --- */
   var p4 = await client(port); p4.tag('p4');
   p4.send({ type: 'joinRoom', code: '9999', name: '路人' });

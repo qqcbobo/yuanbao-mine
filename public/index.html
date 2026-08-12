@@ -260,7 +260,8 @@
       <div id="resText">随机题目</div>
     </div>
     <div class="hint" style="color:#8a6d2a;" id="resExtra"></div>
-    <button class="btn btn-gold" id="btnNewRound" style="margin-top:14px;">完成!回到房间再来一局</button>
+    <button class="btn btn-gold" id="btnPlayAgain" style="margin-top:14px;">🎮 再来一局</button>
+    <button class="btn btn-gray btn-sm" id="btnNewRound" style="margin-top:8px;">回房间(重新选人/设置)</button>
   </div>
 </div>
 
@@ -475,12 +476,22 @@ function showResult(s) {
   $('resultMask').classList.add('show');
 }
 
+/* 再来一局:房主直接开新局,其他人提示等待 */
+$('btnPlayAgain').addEventListener('click', function () {
+  $('resultMask').classList.remove('show');
+  if (myId === state.hostId) {
+    send({ type: 'nextRound' });
+  } else {
+    toast('等待房主开始新一局…');
+  }
+});
+
 $('btnNewRound').addEventListener('click', function () {
   $('resultMask').classList.remove('show');
   if (myId === state.hostId) {
     send({ type: 'resetRoom' });
   } else {
-    toast('等待房主开始新一局…');
+    toast('等待房主操作…');
   }
 });
 

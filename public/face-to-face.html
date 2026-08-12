@@ -231,7 +231,8 @@
       <div id="resText">随机题目</div>
     </div>
     <div class="hint" style="color:#8a6d2a;" id="resExtra"></div>
-    <button class="btn btn-gold" id="btnNextRound" style="margin-top:14px;">完成!再来一局</button>
+    <button class="btn btn-gold" id="btnPlayAgain" style="margin-top:14px;">🎮 再来一局</button>
+    <button class="btn btn-gray btn-sm" id="btnNextRound" style="margin-top:8px;">回房间(重新选人/设置)</button>
   </div>
 </div>
 
@@ -491,6 +492,17 @@ function showResult() {
   }
   $('resultMask').classList.add('show');
 }
+/* 再来一局:保留当前玩家,直接开新局(随机元宝) */
+$('btnPlayAgain').addEventListener('click', function () {
+  $('resultMask').classList.remove('show');
+  var players = game.players.slice();
+  var g = G.createGame();
+  g.players = players;
+  game = g;
+  renderGame();
+});
+
+/* 回房间:重新选人/设置 */
 $('btnNextRound').addEventListener('click', function () {
   $('resultMask').classList.remove('show');
   $('gameView').classList.add('hidden');
