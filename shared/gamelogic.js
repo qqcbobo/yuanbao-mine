@@ -3,7 +3,7 @@
  * 规则:
  *  1. 数字范围 1~100,每局随机设置一个「元宝」数字,以及一个与元宝相邻(±1)的「地雷」数字
  *  2. 玩家循环轮流猜数字,猜的数必须在当前范围内
- *  3. 猜的数落在范围下半段 → 成为新下界;落在上半段 → 成为新上界(范围收窄)
+ *  3. 猜的数比元宝小 → 成为新下界;比元宝大 → 成为新上界(范围收窄,永远包含宝藏)
  *  4. 直到某人猜中元宝(得奖励)或地雷(受惩罚),游戏结束
  * 用法:node 环境 require;浏览器环境 window.GameLogic
  */
@@ -176,24 +176,15 @@
       if (n === game.low || n === game.high) {
         return { ok: false, error: '数字 ' + n + ' 已是边界,没有收窄效果,请换个数字' };
       }
-      // 收窄:中点 mid=(low+high)/2;n<=mid → 新下界;n>mid → 新上界
-      var mid = (game.low + game.high) / 2;
-      var newLow = game.low, newHigh = game.high;
-      if (n <= mid) {
-        newLow = n;
+      // 收窄:猜的数保留「包含宝藏」的半边。
+      // 猜的数 < 宝藏 → 成为新下界(范围 n~high,宝藏仍在范围内)
+      // 猜的数 > 宝藏 → 成为新上界(范围 low~n,宝藏仍在范围内)
+      // 这样范围永远包含元宝/地雷,任何合理猜测都有效,游戏必然结束。
+      if (n < game.treasure) {
+        game.low = n;
       } else {
-        newHigh = n;
+        game.high = n;
       }
-      // 关键规则:新范围必须仍包含元宝或地雷(至少一个),
-      // 否则宝藏被排除出范围,游戏将永远无法结束 → 拒绝该猜测
-      var t = game.treasure, m = game.mine;
-      var containsTreasure = (newLow <= t && t <= newHigh);
-      var containsMine = (newLow <= m && m <= newHigh);
-      if (!containsTreasure && !containsMine) {
-        return { ok: false, error: '数字 ' + n + ' 会把元宝/地雷排除出范围,请换个数字猜' };
-      }
-      game.low = newLow;
-      game.high = newHigh;
     }
 
     game.history.push({

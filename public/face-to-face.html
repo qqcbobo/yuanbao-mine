@@ -145,7 +145,7 @@
         </select>
       </div>
       <button class="btn btn-gold" id="btnStart" style="width:100%;">开始游戏</button>
-      <div class="hint">规则:每局范围 1~100,随机藏一个「元宝」和与它相邻的「地雷」。大家循环轮流猜数字,猜的数会把范围向自己这边收窄,直到有人踩中元宝或地雷为止。</div>
+      <div class="hint">规则:每局范围 1~100,随机藏一个「元宝」和与它相邻的「地雷」。大家循环轮流猜数字,猜的数会把范围向宝藏所在方向收窄,直到有人踩中元宝或地雷为止。</div>
     </div>
   </div>
 
@@ -299,13 +299,8 @@
     else if (n === game.mine) hit = 'mine';
     if (!hit) {
       if (n === game.low || n === game.high) return { ok: false, error: '数字 ' + n + ' 已是边界,没有收窄效果,请换个数字' };
-      var mid = (game.low + game.high) / 2;
-      var newLow = game.low, newHigh = game.high;
-      if (n <= mid) newLow = n; else newHigh = n;
-      var containsTreasure = (newLow <= game.treasure && game.treasure <= newHigh);
-      var containsMine = (newLow <= game.mine && game.mine <= newHigh);
-      if (!containsTreasure && !containsMine) return { ok: false, error: '数字 ' + n + ' 会把元宝/地雷排除出范围,请换个数字猜' };
-      game.low = newLow; game.high = newHigh;
+      // 收窄:猜的数保留「包含宝藏」的半边(小于宝藏→下界,大于宝藏→上界)
+      if (n < game.treasure) game.low = n; else game.high = n;
     }
     game.history.push({ playerId: cur.id, name: cur.name, guess: n, low: game.low, high: game.high, hit: hit });
     if (hit === 'treasure') {
