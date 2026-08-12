@@ -103,6 +103,8 @@ assert(g4.ok && g4.hit === 'treasure', '猜78应命中元宝');
 eq(g.status, 'finished', '游戏结束');
 eq(g.winnerId, p2, '赢家是小红');
 assert(g.result.type === 'treasure', '结果类型=treasure');
+assert(g.result.challenge && (g.result.challenge.type === 'truth' || g.result.challenge.type === 'dare') && g.result.challenge.text, 'result 携带服务端生成的统一挑战题目');
+assert(g.result.targetName && g.result.targetId !== p2, 'result 携带赢家指定的参与者(不能是赢家自己)');
 
 /* --- 11. 结束后不能再猜 --- */
 var after = G.guess(g, p2, 79);
@@ -121,6 +123,7 @@ G.guess(g5, b, 77);   // 命中地雷
 eq(g5.status, 'finished', '地雷命中后结束');
 eq(g5.loserId, b, '输家是B');
 assert(g5.result.type === 'mine', '结果类型=mine');
+assert(g5.result.challenge && g5.result.challenge.text, '地雷结算携带统一挑战题目');
 
 /* --- 13. 极端情况:元宝=100,地雷=99 --- */
 var g6 = G.createGame({ seed: 100, mineSide: '-1' });

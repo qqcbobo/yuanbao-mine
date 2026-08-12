@@ -199,11 +199,20 @@
     if (hit === 'treasure') {
       game.status = 'finished';
       game.winnerId = cur.id;
-      game.result = { type: 'treasure', playerId: cur.id, name: cur.name, guess: n };
+      var tgt = pickRewardTarget(game, cur.id);  // 赢家指定一个参与者
+      game.result = {
+        type: 'treasure', playerId: cur.id, name: cur.name, guess: n,
+        challenge: randomChallenge(),   // 服务端统一生成,所有人看到同一题目
+        targetId: tgt.id,
+        targetName: tgt.name
+      };
     } else if (hit === 'mine') {
       game.status = 'finished';
       game.loserId = cur.id;
-      game.result = { type: 'mine', playerId: cur.id, name: cur.name, guess: n };
+      game.result = {
+        type: 'mine', playerId: cur.id, name: cur.name, guess: n,
+        challenge: randomChallenge()   // 服务端统一生成,所有人看到同一题目
+      };
     } else {
       // 轮到下一个人(循环)
       game.current = (game.current + 1) % game.players.length;

@@ -404,35 +404,27 @@ function guessNow() {
   $('inpGuess').value = '';
 }
 
-/* 结算弹窗:state 更新为 finished 时展示(每个客户端各自生成题目,保证每人看到自己的随机挑战) */
+/* 结算弹窗:题目由服务端统一生成随 result 广播,所有人看到同一挑战 */
 var lastStatus = null;
 function showResult(s) {
   var res = s.result;
   var isTreasure = res && res.type === 'treasure';
   $('resIcon').textContent = isTreasure ? '🎁' : '💣';
   $('resTitle').textContent = isTreasure ? '踩中元宝!' : '踩中地雷!';
-  var chal = randomChallenge();
+  var chal = res && res.challenge ? res.challenge : { type: 'dare', text: '无题目' };
   $('resTag').textContent = chal.type === 'truth' ? '真心话' : '大冒险';
   $('resTag').className = 'tag ' + (chal.type === 'truth' ? 'tag-truth' : 'tag-dare');
   $('resText').textContent = chal.text;
   var name = res ? res.name : '';
   if (isTreasure) {
-    $('resSub').textContent = '「' + name + '」踩中元宝获得奖励!\n奖励:赢家指定一位玩家完成下面的挑战(大家商量指定谁):';
-    $('resExtra').textContent = '🎉 奖励:赢家可以随机指定一位参与者完成挑战!';
+    var tname = res.targetName || '一位玩家';
+    $('resSub').textContent = '「' + name + '」踩中元宝获得奖励!\n奖励:赢家指定「' + tname + '」完成下面的挑战:';
+    $('resExtra').textContent = '🎉 奖励:请「' + tname + '」完成下面的挑战:';
   } else {
     $('resSub').textContent = '「' + name + '」踩中地雷,接受惩罚!';
     $('resExtra').textContent = '💥 惩罚:请「' + name + '」完成下面的挑战:';
   }
   $('resultMask').classList.add('show');
-}
-
-/* 简单随机挑战(与共享题库一致的子集,避免加载 gamelogic 文件) */
-var TRUTHS = ['你最近一次偷偷哭是因为什么?','在场的人里,你觉得谁最有可能单身一辈子?为什么?','你微信置顶聊天的人是谁(除家人外)?','说出你做过最丢脸的一件事。','你手机里最后一张照片是什么?给大家看看。','你暗恋过在场的人吗?说真话。','你上一次撒谎是什么时候?为了什么?','你最想删除的手机联系人是谁?','你觉得自己身上最自恋的一点是什么?','如果必须在场的人里选一个当对象,你选谁?','你收藏夹里最羞耻的东西是什么?','你最长一次没洗澡是多久?','你做过最冲动的一件事是什么?','在场谁最有可能先脱单?理由。','你上一次说"我爱你"是对谁?','你曾经偷偷搜索过什么奇怪的东西?','你觉得在场谁颜值最高?谁最低?','你从小到大拿过几次奖学金/奖状?'];
-var DARES = ['用方言朗读一首诗或一段话,大家满意为止。','模仿在场一个人的经典动作,直到被猜出是谁。','原地转 5 圈,然后走直线到门口再走回来。','给通讯录里第 3 个人打电话,说"我想你了"。','做一个你最不擅长的动物叫,比如学猪叫。','用屁股写自己的名字(大家猜)。','让在场的人轮流问你一个问题,必须如实回答。','公主抱(或背)在场一个人绕一圈。','学电视剧女主角撒娇说一句"讨厌"。','吃一口柠檬/辣椒/芥末(如有),表情不许变。','现场找一个人对视 30 秒,不许笑。','用「哈哈哈」唱完一首歌的开头。','把袜子穿在手上,做三个俯卧撑。','模仿三种动物的走路姿势。','对在场某个人说一句土味情话。','倒立或靠墙倒立 10 秒(量力而行)。','说出在场所有人的一个优点(每人至少一句)。','用夸张的姿势走一个 T 台,摆 3 个造型。','接受大家给你起的一个外号,并叫自己 3 次。','做 10 个深蹲,边做边大声数数。'];
-function randomChallenge() {
-  var type = Math.random() < 0.5 ? 'truth' : 'dare';
-  var pool = type === 'truth' ? TRUTHS : DARES;
-  return { type: type, text: pool[Math.floor(Math.random() * pool.length)] };
 }
 
 $('btnNewRound').addEventListener('click', function () {

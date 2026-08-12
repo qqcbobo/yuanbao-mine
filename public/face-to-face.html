@@ -433,15 +433,14 @@ function showResult() {
   var isTreasure = res.type === 'treasure';
   $('resIcon').textContent = isTreasure ? '🎁' : '💣';
   $('resTitle').textContent = isTreasure ? '踩中元宝!' : '踩中地雷!';
-  var chal = G.randomChallenge();
+  var chal = res.challenge;
   var tagCls = chal.type === 'truth' ? 'tag-truth' : 'tag-dare';
   $('resTag').textContent = chal.type === 'truth' ? '真心话' : '大冒险';
   $('resTag').className = 'tag ' + tagCls;
   $('resText').textContent = chal.text;
   if (isTreasure) {
-    var tgt = G.pickRewardTarget(game, res.playerId);
     $('resSub').textContent = '「' + res.name + '」踩中元宝获得奖励!';
-    $('resExtra').textContent = '🎉 奖励:指定「' + tgt.name + '」完成下面的挑战:';
+    $('resExtra').textContent = '🎉 奖励:指定「' + res.targetName + '」完成下面的挑战:';
   } else {
     $('resSub').textContent = '「' + res.name + '」踩中地雷,接受惩罚!';
     $('resExtra').textContent = '💥 惩罚:请完成下面的挑战:';
