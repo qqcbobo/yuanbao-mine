@@ -159,7 +159,8 @@ eq(g6.status, 'finished', '极端局结束');
 /* --- 14. 挑战抽取 --- */
 var c1 = G.randomChallenge();
 assert((c1.type === 'truth' || c1.type === 'dare') && c1.text, '挑战抽取有效');
-assert(G.TRUTHS.length >= 10 && G.DARES.length >= 10, '题库不少于10条');
+eq(G.TRUTHS.length, 50, '真心话题库共50条');
+eq(G.DARES.length, 50, '大冒险题库共50条');
 
 /* --- 15. 赢家指定目标(不能是自己,多人) --- */
 var g7 = G.createGame({ seed: 50, mineSide: '+1' });
